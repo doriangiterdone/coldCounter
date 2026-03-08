@@ -1,243 +1,212 @@
 # coldCounter
 
-coldCounter is an open source data infrastructure project designed to aggregate, normalize, and document publicly available information related to immigration enforcement outcomes in the United States.
+**coldCounter** is an open-source data infrastructure project that aggregates, normalizes, and documents immigration detention data in the United States.
 
-The system was created on March 4, 2026 by No Concentration Camps in Colorado to support legal researchers, journalists, policy analysts, and civil rights organizations seeking transparent and reproducible data on immigration enforcement practices.
+The project produces a portable **SQLite data mart** that allows researchers, journalists, policy analysts, and civil rights organizations to explore immigration detention records in a transparent and reproducible way.
 
-coldCounter provides a portable SQLite data mart built, refreshed, and shared at the researcher's will.
+coldCounter was created on **March 4, 2026** by **No Concentration Camps in Colorado**.
 
 ---
 
 # Purpose
 
-Immigration enforcement data in the United States is distributed across multiple federal agencies and public publications. These sources often differ in formatting, classification systems, and accessibility.
+Immigration enforcement datasets are often difficult to analyze due to:
 
-coldCounter was developed to:
+- inconsistent formatting
+- fragmented publication
+- differing classification systems
 
-- Aggregate immigration enforcement data derived from publicly available government sources  
-- Normalize offense classification codes used in enforcement systems  
-- Provide a transparent and reproducible database structure  
-- Enable legal researchers to evaluate enforcement classifications  
-- Support litigation, policy analysis, and investigative journalism  
+coldCounter addresses these issues by providing a reproducible database that:
 
-The project emphasizes **traceability, reproducibility, and documentation** so that independent researchers can understand how enforcement classifications are represented within the database.
+- Aggregates immigration detention datasets published by **deportationdata.org**
+- Normalizes offense classification systems
+- Structures data into analytical tables
+- Enables reproducible research workflows
+
+The goal is to make enforcement data **transparent, analyzable, and portable**.
 
 ---
 
 # System Overview
 
-coldCounter consists of two primary functional layers:
+coldCounter consists of two primary components:
 
-1. Database Construction  
-2. Analytical Reporting
+### 1. Database Construction
+Python ETL scripts build and populate a SQLite database containing normalized detention data sourced from **deportationdata.org**.
 
----
-
-# Database Construction
-
-The database is built using Python scripts that generate and populate a SQLite data mart.
-
-SQLite was selected because it allows the entire dataset to be distributed as a **portable single-file database**, which can easily be shared among researchers, opened in database tools, or attached to analytical workflows.
-
-The construction scripts perform tasks including:
-
-- Creating the database schema  
-- Importing immigration enforcement data  
-- Normalizing classification systems  
-- Populating dimensional reference tables  
-
----
-
-# Analytical Reporting
-
-The project includes scripts used to generate aggregated reports from the database.
-
-These scripts allow users to produce summary outputs useful for:
-
-- Legal analysis  
-- Policy research  
-- Investigative reporting  
-- Statistical summaries of enforcement data  
+### 2. Analytical Reporting
+The database structure enables researchers to generate statistical summaries and facility-level reports using datasets published by **deportationdata.org**.
 
 ---
 
 # Repository Structure
 
 ```
-coldCounter/
-
-setup/
-    Python script used to generate and populate the database
-    Excel file of NCIC offense codes
-
-Beekeeper Portable Data Browser/
-    Data explorer tool
-
-
-
-README.md
+coldCounter
+│
+├─ etl
+│  ├─ ingest.py
+│  ├─ normalize.py
+│  └─ build_database.py
+│
+├─ schema
+│  ├─ dim_offense.sql
+│  ├─ dim_facility.sql
+│  ├─ dim_person.sql
+│  └─ fact_detention_events.sql
+│
+├─ data
+│  └─ raw_downloads
+│
+├─ reports
+│  └─ example_queries.sql
+│
+├─ coldcounter.db
+│
+└─ README.md
 ```
 
 ---
 
-# Building the Database
+# Database Design
 
-The coldCounter database can be built locally using the provided setup scripts.
+coldCounter uses a dimensional modeling approach designed for analytical queries.
 
-## Step 1 — Run the primary ETL process
-The coldCounter.db file available for download in the repository is preloaded with all current data available as of the last repository update.
-**YOU MAY SKIP THIS STEP UNLESS YOU WANT TO GENERATE A NEW coldCounter.db FILE**
+Primary tables include:
 
-Run the install_or_refresh_coldCounter.bat file
+### Dimension Tables
 
-This script performs the primary **Extract-Transform-Load (ETL)** process that constructs the base database and imports current data sets.
+dim_person  
+Basic demographic and classification attributes associated with a detention record.
 
----
+dim_facility  
+Information about detention facilities.
 
-## Step 2 — Browse the Data Mart
+dim_offense  
+Normalized offense classification codes derived from datasets published by deportationdata.org.
 
-The build script will create coldCounter.db
+### Fact Tables
 
-Open the Beekeeper Portable Data Browser folder and run Beekeeper-Studio-5.6.0-portable.exe
+fact_detention_events  
+Event level detention records linked to dimension tables through foreign keys.
 
-If prompted: 
-    - Connection type = SQLite
-    - Database File - *Choose your coldCounter.db file*
-
-Save connection for easier future access. 
+This structure allows analysts to efficiently perform queries across large enforcement datasets.
 
 ---
-
 
 # Data Sources
 
-coldCounter relies exclusively on publicly available government and institutional publications related to immigration enforcement and criminal offense classification.
+coldCounter aggregates immigration detention data published by deportationdata.org.
 
-Reference materials incorporated into the database include publications and documentation from:
+The project relies on publicly documented datasets that have been compiled and structured by deportationdata.org for research and public transparency purposes.
 
-- U.S. Immigration and Customs Enforcement (ICE)  
-- U.S. Department of Homeland Security (DHS)  
-- Federal Bureau of Investigation (FBI)  
-- United States Sentencing Commission (USSC)  
-- U.S. Department of Justice (DOJ)  
-
-The project may also incorporate datasets and documents derived from these institutional publications that have been obtained through Freedom of Information Act (FOIA) litigation conducted by legal organizations, researchers, and civil rights advocates.
-
-These materials are used to construct normalized classification references and supporting analytical datasets within the database.
+All ingestion scripts reference datasets available through deportationdata.org.
 
 ---
 
-# Data Provenance and Methodology
+# ETL Pipeline
 
-coldCounter is designed to ensure that all database content is traceable to publicly available source materials. The project does **not rely on proprietary datasets or unpublished government records.**
+The ETL workflow follows three stages.
+
+### 1. Ingest
+
+Raw datasets are downloaded and stored in the data directory.
+
+### 2. Normalize
+
+Scripts standardize column names, convert inconsistent formats, and map offense codes to normalized classification tables.
+
+### 3. Load
+
+Normalized datasets are inserted into the SQLite data mart.
+
+The entire process can be executed from a single build script.
+
+Example:
+
+```
+python etl/build_database.py
+```
 
 ---
 
-# Source Material
+# Example Queries
 
-All reference data incorporated into the database originates from publicly published materials issued by United States government agencies and related institutions.
+Total detainees by facility
 
-These materials provide the **legal and administrative definitions** used to construct dimensional reference tables within the database.
+```
+SELECT facility_name, COUNT(*)
+FROM fact_detention_events
+JOIN dim_facility USING (facility_id)
+GROUP BY facility_name;
+```
 
----
+Offense classifications represented in detention records
 
-# Data Transformation Process
-
-coldCounter is built through a **reproducible Extract-Transform-Load workflow implemented in Python.**
-
-The construction process follows three stages.
-
-## Extraction
-
-Publicly available datasets and classification references are collected from government publications and documentation.
-
-## Transformation
-
-Extracted data is normalized into consistent formats suitable for database storage. This process includes:
-
-- Standardizing classification codes  
-- Structuring reference data into dim and fact tables  
-
-## Loading
-
-The normalized data is loaded into a SQLite data mart designed for analytical queries and reporting.
-
-The ETL process is executed through the repository setup scripts allowing the database to be rebuilt deterministically by independent researchers.
+```
+SELECT offense_code, COUNT(*)
+FROM fact_detention_events
+JOIN dim_offense USING (offense_id)
+GROUP BY offense_code;
+```
 
 ---
 
 # Reproducibility
 
-Because the database is generated through scripted processes users can independently reconstruct the dataset by executing the provided setup script.
+coldCounter is designed to allow anyone to rebuild the database from source datasets.
 
-This reproducibility allows researchers to verify:
+Steps:
 
-- Database schema design  
-- Data transformation methods  
-- Classification mappings  
+1. Clone the repository  
+2. Download the datasets referenced from deportationdata.org  
+3. Run the ETL build script  
+4. The SQLite database will be generated locally  
 
-The goal is to ensure that the coldCounter database functions as a **transparent analytical tool rather than a closed dataset.**
-
----
-
-# Scope and Limitations
-
-coldCounter aggregates and normalizes publicly available reference materials related to immigration enforcement classification systems.
-
-The project does **not independently verify the accuracy of the underlying government publications** from which reference data is derived.
-
-coldCounter is intended to document classification structures and provide analytical infrastructure for examining ICE data.
-
-The database should **not be interpreted as an authoritative statement of federal enforcement policy or as a comprehensive record of immigration enforcement activity.**
-
-Users of the database should consult original government publications when making legal or policy determinations.
+This workflow ensures that analytical results can be independently verified.
 
 ---
 
-# Intended Use
+# Intended Users
 
-coldCounter is designed to support:
+This project is designed for:
 
-- Legal research  
-- Policy analysis  
-- Investigative journalism  
-- Academic research  
-- Civil rights monitoring  
-
-The system provides a structured representation of immigration enforcement classifications that can be examined independently by researchers and legal professionals.
-
----
-
-# Citation
-
-Researchers, journalists, and legal practitioners who reference coldCounter in publications or filings are encouraged to cite the system using the following format.
-
-### Recommended Citation
-
-No Concentration Camps in Colorado.  
-**coldCounter: Immigration Enforcement Detention Data. Version 1.1. Created March 4, 2026. Updated: 03/07/2026**
-
-### Example Academic Citation
-
-No Concentration Camps in Colorado, *coldCounter: Immigration Enforcement Detention Data* (Mar. 4, 2026).
-
-### Example Legal Citation (Bluebook Style)
-
-*coldCounter: Immigration Enforcement Detention Data*, No Concentration Camps in Colorado (Mar. 4, 2026).
-
-When possible citations should also include the repository URL where the database and documentation are hosted.
+- journalists
+- academic researchers
+- policy analysts
+- civil rights organizations
+- data scientists studying immigration enforcement
 
 ---
 
 # License
 
-This project is released as open source software under the **MIT License.**
+This project is released under an open source license.
 
-Copyright 2026  
-No Concentration Camps in Colorado
+Users should verify the licensing terms of datasets published by deportationdata.org before redistribution.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction. This includes without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so.
+---
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+# Disclaimer
 
-THE SOFTWARE IS PROVIDED **"AS IS"**, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+coldCounter is an independent data infrastructure project.
+
+It organizes datasets published by deportationdata.org for the purpose of analysis and transparency.
+
+The project does not modify the underlying records beyond normalization required for database structure.
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+Suggested areas for contribution include:
+
+- additional normalization scripts
+- improved database schema design
+- analytical query libraries
+- data validation tools
+- documentation improvements
+
+Pull requests and issue reports are encouraged.
