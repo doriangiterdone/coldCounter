@@ -277,7 +277,7 @@ def build_facility_statistics(conn):
      # Group by facility and compute aggregate statistics
     grouped = (
         filtered
-        .groupby(["detention_facility", "detention_facility_code"])
+        .groupby(["state","detention_facility", "detention_facility_code"])
         .agg(
             facility_category=('facility_category', 'first'),
             total_stays_recorded_at_facility=("stay_ID", "count"),
