@@ -100,7 +100,9 @@ fact_detention_facilities
 ### Dimension Tables
 
 dim_ncic_offense_codes
-    - contains categorized NCIC offense codes used in ICOTS, obtained from ICAOS (https://support.interstatecompact.org/hc/en-us/articles/360046201293-What-NCIC-Offense-Codes-are-used-in-ICOTS)
+    - contains categorized NCIC offense codes used in ICOTS, obtained from ICAOS
+    
+ 
 ---
 
 # Data Sources
@@ -109,7 +111,7 @@ coldCounter aggregates immigration detention data published by The Deportation P
 
 The project relies on publicly documented datasets that have been compiled and structured for research and public transparency purposes.
 
-All ingestion scripts reference datasets available through deportationdata.org.
+All ingestion reference datasets available through deportationdata.org, and the NCIC offense code classifications found at https://support.interstatecompact.org/hc/en-us/articles/360046201293-What-NCIC-Offense-Codes-are-used-in-ICOTS.
 
 ---
 
