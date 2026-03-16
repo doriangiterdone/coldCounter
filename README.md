@@ -145,7 +145,7 @@ The project relies on publicly documented datasets that have been compiled and s
 All ingestion reference datasets available through deportationdata.org, and the NCIC offense code classifications found at https://support.interstatecompact.org/hc/en-us/articles/360046201293-What-NCIC-Offense-Codes-are-used-in-ICOTS.  
   
   
-Additional sourcing for holdroom location data available in dom_noccc_holdroom_research.     
+Additional sourcing for holdroom location data available in dim_noccc_holdroom_research.     
   
 ### Resources 
 
@@ -188,7 +188,7 @@ coldCounter is designed to allow anyone to rebuild the database from source data
 
 Steps:
 
-1. Clone the repository  
+1. Download the repository  
 2. Extract to your desired installation directory  
 3. Run the install_or_refresh_coldCounter.bat batch file
 4. The SQLite database will be generated locally  
